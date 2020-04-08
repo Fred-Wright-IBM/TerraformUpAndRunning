@@ -11,6 +11,9 @@ resource "aws_launch_configuration" "example" {
     user_data = <<-EOF
                 #!/bin/bash
                 echo "Hello, World" > index.html
+              # echo "${data.terraform_remote_state.db.outputs.address}" >> index.html
+              # echo "${data.terraform_remote_state.db.outputs.port}" >> index.html
+                echo "${data.terraform_remote_state.s3.outputs.dynamodb_table_name}" >> index.html
                 nohup busybox httpd -f -p ${var.server_port} &
                 EOF
 
@@ -30,17 +33,6 @@ resource "aws_security_group" "instance" {
       cidr_blocks = ["0.0.0.0/0"]
     }
 
-}
-
-variable "server_port" {
-  description = "The port the servier will use for HTTP requests"
-  type = number
-  default = 8080
-}
-
-output "alb_dns_name"{
-  value = aws_lb.example.dns_name
-  description = "The domain name of the load balancer"
 }
 
 resource "aws_autoscaling_group" "example" {
@@ -132,4 +124,15 @@ resource "aws_lb_listener_rule" "asg" {
       type = "forward"
       target_group_arn = aws_lb_target_group.asg.arn
     }
+}
+
+terraform {
+  backend "s3" {
+    bucket = "s3bucket-bootcamp-fw"
+    key = "stage/services/webserver-cluster/terraform.tfstate"
+    region = "eu-west-2"
+
+    dynamodb_table = "dynamodb-bootcamp-fw"
+    encrypt = true
+  }
 }

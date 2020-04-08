@@ -15,7 +15,7 @@ resource "aws_instance" "instance1" {
 terraform {
   backend "s3" {
     bucket = "s3bucket-bootcamp-fw"
-    key = "workspace-example/terraform.tfstate"
+    key = "workspace-example/terraform.tfstate" #the key specifies the path in the s3 bucket to store the file
     region = "eu-west-2"
 
     dynamodb_table = "dynamodb-bootcamp-fw"
