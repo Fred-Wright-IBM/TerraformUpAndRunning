@@ -37,3 +37,12 @@ data "terraform_remote_state" "s3" {
     region = "eu-west-2"
   }
 }
+
+data "template_file" "user_data" {
+  template = file("user-data.sh")
+
+  vars = {
+    server_port = var.server_port
+    dynamodb_table_name = data.terraform_remote_state.s3.outputs.dynamodb_table_name
+  }
+}
