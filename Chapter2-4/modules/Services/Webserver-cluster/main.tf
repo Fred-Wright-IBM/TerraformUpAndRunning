@@ -5,7 +5,7 @@ provider "aws" {
 resource "aws_launch_configuration" "example" {
     image_id = "ami-006a0174c6c25ac06"
     instance_type = "t2.micro"
-    security_groups = [aws_security_group.instance.id]
+    vpc_security_group_ids = [aws_security_group.instance.id]
     key_name = "FWKeyPair"
     user_data = data.template_file.user_data.rendered
 
@@ -16,7 +16,7 @@ resource "aws_launch_configuration" "example" {
 }
 
 resource "aws_security_group" "instance" {
-    name = "terraform-example-instance-FW"
+    name = "${var.cluster_name}-instance"
 
     ingress {
       from_port = var.server_port
@@ -24,7 +24,6 @@ resource "aws_security_group" "instance" {
       protocol = "tcp"
       cidr_blocks = ["0.0.0.0/0"]
     }
-
 }
 
 resource "aws_autoscaling_group" "example" {
@@ -38,7 +37,7 @@ resource "aws_autoscaling_group" "example" {
     max_size = 10
 
     tag {
-      key = "Name"
+      key = "${var.cluster_name}-Name"
       value = "terraform-asg-example-FW"
       propagate_at_launch = true
     }
@@ -46,7 +45,7 @@ resource "aws_autoscaling_group" "example" {
 
 
 resource "aws_lb" "example" {
-  name = "terraform-asg-example-fw"
+  name = "${var.cluster_name}-example"
   load_balancer_type = "application"
   subnets = data.aws_subnet_ids.private.ids
   security_groups = [aws_security_group.alb.id]
@@ -70,7 +69,7 @@ default_action {
 }
 
 resource "aws_security_group" "alb" {
-  name = "terraform-example-alb-fW"
+  name = "${var.cluster_name}-alb"
 
   ingress {
     from_port = 80
@@ -87,7 +86,7 @@ resource "aws_security_group" "alb" {
 }
 
 resource "aws_lb_target_group" "asg" {
-    name = "terraform-asg-example-fw"
+    name = "${var.cluster_name}-asg"
     port = var.server_port
     protocol = "HTTP"
     vpc_id = data.aws_vpc.default.id
